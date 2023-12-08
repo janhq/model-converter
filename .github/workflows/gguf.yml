@@ -33,7 +33,7 @@ jobs:
       - name: Login to HuggingFace Hub
         shell: bash
         run: |
-          pip install huggingface-cli
+          pip install huggingface_hub hf-transfer
           huggingface-cli login --token ${{ secrets.HUGGINGFACE_TOKEN }} --add-to-git-credential 
   
       - name: Check if logged in into HF
@@ -66,11 +66,9 @@ jobs:
           repo_id="${{ env.USER_NAME }}/$lowercase_model_name"
           echo "repo_id=$repo_id" >> $GITHUB_ENV
 
-      - name: Install dependencies
+      - name: Install llama.cpp dependencies
         shell: bash
         run: |
-          pip install -r requirements.txt
-          
           cd llama.cpp/ 
           make clean
           make

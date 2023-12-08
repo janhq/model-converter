@@ -1,3 +1,0 @@
-fire
-huggingface_hub
-hf-transfer
