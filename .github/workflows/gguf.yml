@@ -1,6 +1,9 @@
-name: CI
+name: GGUF Converter
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       hf_model_id:
@@ -46,8 +49,10 @@ jobs:
           MODEL_NAME="${ADDR[$ADDR_LENGTH-1]}"
           if [[ "$MODEL_NAME" != "${MODEL_NAME,,}" ]]; then
             lowercase_model_name=$(echo "$MODEL_NAME" | tr '[:upper:]' '[:lower:]')
+          else
+            lowercase_model_name="$MODEL_NAME"
           fi
-          echo "c=$lowercase_model_name" >> $GITHUB_ENV
+          echo "MODEL_NAME=$lowercase_model_name" >> $GITHUB_ENV
 
           fp16="${lowercase_model_name}.fp16.bin"
           echo "fp16=$fp16" >> $GITHUB_ENV
