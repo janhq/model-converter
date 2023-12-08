@@ -1,0 +1,111 @@
+name: CI
+
+on:
+  workflow_dispatch:
+    inputs:
+      hf_model_id:
+        description: 'HuggingFace model ID'
+        required: true
+        type: string
+
+env:
+  USER_NAME: janhq
+  MODEL_ID: ${{ inputs.hf_model_id }}
+
+jobs:
+  converter:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        method: ["Q4_K_M", "Q5_K_M"]
+
+    steps:
+      - name: Clone
+        id: checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Login to HuggingFace Hub
+        shell: bash
+        run: |
+          pip install huggingface_hub hf-transfer
+          huggingface-cli login --token ${{ secrets.HUGGINGFACE_TOKEN }} --add-to-git-credential        
+
+      - name: Misc. env vars
+        shell: bash
+        run: |
+          echo "Model ID: ${{ env.MODEL_ID }}"
+          echo "Method: ${{ matrix.method }}"
+
+          MODEL_ID=${{ env.MODEL_ID }}
+          IFS='/' read -ra ADDR <<< "$MODEL_ID"
+          ADDR_LENGTH=${#ADDR[@]}
+
+          MODEL_NAME="${ADDR[$ADDR_LENGTH-1]}"
+          if [[ "$MODEL_NAME" != "${MODEL_NAME,,}" ]]; then
+            lowercase_model_name=$(echo "$MODEL_NAME" | tr '[:upper:]' '[:lower:]')
+          fi
+          echo "c=$lowercase_model_name" >> $GITHUB_ENV
+
+          fp16="${lowercase_model_name}.fp16.bin"
+          echo "fp16=$fp16" >> $GITHUB_ENV
+
+          method="${{ matrix.method }}"
+          qtype="${lowercase_model_name}.${method}.gguf"
+          echo "qtype=$qtype" >> $GITHUB_ENV
+
+          repo_id="${{ env.USER_NAME }}/$lowercase_model_name"
+          echo "repo_id=$repo_id" >> $GITHUB_ENV
+
+      - name: Install llama.cpp dependencies
+        shell: bash
+        run: |
+          cd llama.cpp/ 
+          make clean
+          make
+          pip install -r requirements.txt
+
+      - name: Download HF model
+        shell: bash
+        run: |
+          HF_HUB_ENABLE_HF_TRANSFER=1 huggingface-cli download --repo-type model --local-dir ./models ${{ env.MODEL_ID }}
+
+      - name: Convert to fp16
+        shell: bash
+        run: |
+          mkdir "${{ env.MODEL_NAME }}"
+          python llama.cpp/convert.py models --outtype f16 --outfile "${{ env.MODEL_NAME }}/${{ env.fp16 }}"
+
+      - name: GGUF quantization
+        shell: bash
+        run: |
+          ./llama.cpp/quantize "${{ env.MODEL_NAME }}/${{ env.fp16 }}" "${{ env.MODEL_NAME }}/${{ env.qtype }}" "${{ matrix.method }}"
+
+      - name: Test quantized model
+        shell: bash
+        run: |
+          ./llama.cpp/main -m "${{ env.MODEL_NAME }}/${{ env.qtype }}" -n 128 --color -ngl 35 -p "Who are you?"
+          # TODO: Add resources grab from logs
+
+      - name: Upload to HF
+        shell: bash
+        run: |
+          huggingface-cli upload --repo-type model --include *.gguf  ${{ env.repo_id }} "${{ env.MODEL_NAME }}"
+
+      - name: Cleanup
+        shell: bash
+        run: |
+          huggingface-cli logout
+
+  # noti-discord:
+  #   needs: [converter]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Notify Discord
+  #       uses: Ilshidur/action-discord@master
+  #       with:
+  #         args: ""
+  #       env:
+  #         DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
