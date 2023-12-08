@@ -11,7 +11,7 @@ on:
 env:
   USER_NAME: janhq
   MODEL_ID: ${{ inputs.hf_model_id }}
-  QUANTIZATION_METHODS: "Q4_K_M Q5_K_M"
+  QUANTIZATION_METHODS: "Q3_K_M Q4_K_M Q5_K_M Q8_0"
 
 jobs:
   converter:
@@ -93,15 +93,15 @@ jobs:
         shell: bash
         run: |
           ls -la ./${{ env.MODEL_NAME }}
-          huggingface-cli upload ${{ env.repo_id }} ${{ env.MODEL_NAME }} . --include *.gguf 
+          huggingface-cli upload ${{ env.repo_id }} ${{ env.MODEL_NAME }} . --include *.gguf
 
       - name: Cleanup
         if: always()
         shell: bash
         run: |
-          huggingface-cli logout
           rm -rf ./models
           rm -rf "${{ env.MODEL_NAME }}"
+          huggingface-cli logout
 
   # noti-discord:
   #   needs: [converter]
