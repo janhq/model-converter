@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       hf_model_id:
-        description: 'HuggingFace model ID'
+        description: "HuggingFace model ID"
         required: true
         type: string
 
@@ -26,14 +26,14 @@ jobs:
 
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
-          cache: 'pip'
+          python-version: "3.9"
+          cache: "pip"
 
       - name: Login to HuggingFace Hub
         shell: bash
         run: |
           pip install huggingface_hub hf-transfer
-          huggingface-cli login --token ${{ secrets.HUGGINGFACE_TOKEN }} --add-to-git-credential        
+          huggingface-cli login --token ${{ secrets.HUGGINGFACE_TOKEN }} --add-to-git-credential
 
       - name: Misc. env vars
         shell: bash
@@ -93,9 +93,10 @@ jobs:
         shell: bash
         run: |
           ls -la ./${{ env.MODEL_NAME }}
-          huggingface-cli upload --repo-type model --include *.gguf  ${{ env.repo_id }} ${{ env.MODEL_NAME }} .
+          huggingface-cli upload ${{ env.repo_id }} ${{ env.MODEL_NAME }} . --include *.gguf 
 
       - name: Cleanup
+        if: always()
         shell: bash
         run: |
           huggingface-cli logout
