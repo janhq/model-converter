@@ -16,7 +16,6 @@ env:
 jobs:
   converter:
     runs-on: linux-cpu
-
     steps:
       - name: Clone
         id: checkout
@@ -101,15 +100,5 @@ jobs:
         run: |
           rm -rf ./models
           rm -rf "${{ env.MODEL_NAME }}"
+          rm -rf "/home/${USER}/.cache/huggingface/"
           huggingface-cli logout
-
-  # noti-discord:
-  #   needs: [converter]
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Notify Discord
-  #       uses: Ilshidur/action-discord@master
-  #       with:
-  #         args: ""
-  #       env:
-  #         DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
