@@ -1,6 +1,9 @@
 name: CI
 
 on:
+  push:
+    branches:
+      - feat/gguf_converter_init
   workflow_dispatch:
     inputs:
       hf_model_id:
@@ -104,7 +107,7 @@ jobs:
         shell: bash
         run: |
           huggingface-cli logout
-          
+
   # noti-discord:
   #   needs: [converter]
   #   runs-on: ubuntu-latest
