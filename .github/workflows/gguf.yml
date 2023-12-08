@@ -93,7 +93,7 @@ jobs:
         shell: bash
         run: |
           ls -la ./${{ env.MODEL_NAME }}
-          huggingface-cli upload ${{ env.repo_id }} ${{ env.MODEL_NAME }} . --include *.gguf 
+          huggingface-cli upload ${{ env.repo_id }} ${{ env.MODEL_NAME }} . --include *.gguf
 
       - name: Cleanup
         if: always()
