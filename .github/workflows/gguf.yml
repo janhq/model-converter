@@ -99,7 +99,7 @@ jobs:
       - name: Upload to HF
         shell: bash
         run: |
-          huggingface-cli upload --repo-type model --include *.gguf  ${{ env.repo_id }} "${{ env.MODEL_NAME }}"
+          huggingface-cli upload --repo-type model --include *.gguf  ${{ env.repo_id }} "${{ env.MODEL_NAME }}" .
 
       - name: Cleanup
         shell: bash
