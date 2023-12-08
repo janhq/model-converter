@@ -11,14 +11,11 @@ on:
 env:
   USER_NAME: janhq
   MODEL_ID: ${{ inputs.hf_model_id }}
+  QUANTIZATION_METHODS: "Q4_K_M Q5_K_M"
 
 jobs:
   converter:
     runs-on: linux-cpu
-
-    strategy:
-      matrix:
-        method: ["Q4_K_M", "Q5_K_M"]
 
     steps:
       - name: Clone
@@ -42,7 +39,7 @@ jobs:
         shell: bash
         run: |
           echo "Model ID: ${{ env.MODEL_ID }}"
-          echo "Method: ${{ matrix.method }}"
+          echo "Quantization: ${{ env.QUANTIZATION_METHODS }}"
 
           MODEL_ID=${{ env.MODEL_ID }}
           IFS='/' read -ra ADDR <<< "$MODEL_ID"
@@ -58,10 +55,6 @@ jobs:
 
           fp16="${lowercase_model_name}.fp16.bin"
           echo "fp16=$fp16" >> $GITHUB_ENV
-
-          method="${{ matrix.method }}"
-          qtype="${lowercase_model_name}.${method}.gguf"
-          echo "qtype=$qtype" >> $GITHUB_ENV
 
           repo_id="${{ env.USER_NAME }}/$lowercase_model_name"
           echo "repo_id=$repo_id" >> $GITHUB_ENV
@@ -85,26 +78,29 @@ jobs:
           mkdir "${{ env.MODEL_NAME }}"
           python llama.cpp/convert.py models --outtype f16 --outfile "${{ env.MODEL_NAME }}/${{ env.fp16 }}"
 
-      - name: GGUF quantization
+      - name: GGUF quantization and test
         shell: bash
         run: |
-          ./llama.cpp/quantize "${{ env.MODEL_NAME }}/${{ env.fp16 }}" "${{ env.MODEL_NAME }}/${{ env.qtype }}" "${{ matrix.method }}"
+          for method in ${{ env.QUANTIZATION_METHODS }}; do
+              # TODO: Add resources grab from logs
+              qtype="${{ env.MODEL_NAME }}.$method.gguf"
+              ./llama.cpp/quantize "${{ env.MODEL_NAME }}/${{ env.fp16 }}" "${{ env.MODEL_NAME }}/$qtype" "$method"
 
-      - name: Test quantized model
-        shell: bash
-        run: |
-          ./llama.cpp/main -m "${{ env.MODEL_NAME }}/${{ env.qtype }}" -n 128 --color -ngl 35 -p "Who are you?"
-          # TODO: Add resources grab from logs
+              ./llama.cpp/main -m "${{ env.MODEL_NAME }}/$qtype" -n 128 --color -ngl 35 -p "a"
+          done
 
       - name: Upload to HF
         shell: bash
         run: |
-          huggingface-cli upload --repo-type model --include *.gguf  ${{ env.repo_id }} "${{ env.MODEL_NAME }}"
+          ls -la ./${{ env.MODEL_NAME }}
+          huggingface-cli upload --repo-type model --include *.gguf  ${{ env.repo_id }} ${{ env.MODEL_NAME }} .
 
       - name: Cleanup
         shell: bash
         run: |
           huggingface-cli logout
+          rm -rf ./models
+          rm -rf "${{ env.MODEL_NAME }}"
 
   # noti-discord:
   #   needs: [converter]
