@@ -1,9 +1,6 @@
 name: CI
 
 on:
-  push:
-    branches:
-      - feat/gguf_converter_init
   workflow_dispatch:
     inputs:
       hf_model_id:
@@ -34,11 +31,7 @@ jobs:
         shell: bash
         run: |
           pip install huggingface_hub hf-transfer
-          huggingface-cli login --token ${{ secrets.HUGGINGFACE_TOKEN }} --add-to-git-credential 
-  
-      - name: Check if logged in into HF
-        run: |
-          huggingface-cli whoami          
+          huggingface-cli login --token ${{ secrets.HUGGINGFACE_TOKEN }} --add-to-git-credential        
 
       - name: Misc. env vars
         shell: bash
