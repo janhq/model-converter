@@ -99,6 +99,7 @@ jobs:
       - name: Upload README to HF (TODO)
         shell: bash
         run: |
+          cp ./models/${{ env.MODEL_ID }}/README.md ./${{ env.MODEL_NAME }}/
           ls -la ./${{ env.MODEL_NAME }}
           huggingface-cli upload ${{ env.repo_id }} ${{ env.MODEL_NAME }} . --include *.md
 
