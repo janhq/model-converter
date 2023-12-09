@@ -55,7 +55,7 @@ jobs:
           fp16="${lowercase_model_name}.fp16.bin"
           echo "fp16=$fp16" >> $GITHUB_ENV
 
-          repo_id="${{ env.USER_NAME }}/$lowercase_model_name"
+          repo_id="${{ env.USER_NAME }}/$lowercase_model_name-GGUF"
           echo "repo_id=$repo_id" >> $GITHUB_ENV
 
       - name: Install llama.cpp dependencies
