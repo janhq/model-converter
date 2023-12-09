@@ -58,6 +58,8 @@ jobs:
           repo_id="${{ env.USER_NAME }}/$lowercase_model_name-GGUF"
           echo "repo_id=$repo_id" >> $GITHUB_ENV
 
+          echo "HF_HUB_ENABLE_HF_TRANSFER=1" >> $GITHUB_ENV
+
       - name: Install llama.cpp dependencies
         shell: bash
         run: |
@@ -92,7 +94,7 @@ jobs:
         shell: bash
         run: |
           ls -la ./${{ env.MODEL_NAME }}
-          huggingface-cli upload ${{ env.repo_id }} ${{ env.MODEL_NAME }} . --include *.gguf
+          HF_HUB_ENABLE_HF_TRANSFER=1 huggingface-cli upload ${{ env.repo_id }} ${{ env.MODEL_NAME }} . --include *.gguf
           
       - name: Upload README to HF (TODO)
         shell: bash
