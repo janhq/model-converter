@@ -31,7 +31,7 @@ jobs:
       - name: Login to HuggingFace Hub
         shell: bash
         run: |
-          pip install huggingface_hub hf-transfer
+          pip install -r requirements.txt
           huggingface-cli login --token ${{ secrets.HUGGINGFACE_TOKEN }} --add-to-git-credential
 
       - name: Misc. env vars
@@ -57,8 +57,6 @@ jobs:
 
           repo_id="${{ env.USER_NAME }}/$lowercase_model_name-GGUF"
           echo "repo_id=$repo_id" >> $GITHUB_ENV
-
-          echo "HF_HUB_ENABLE_HF_TRANSFER=1" >> $GITHUB_ENV
 
       - name: Install llama.cpp dependencies
         shell: bash
@@ -89,12 +87,6 @@ jobs:
 
               ./llama.cpp/main -m "${{ env.MODEL_NAME }}/$qtype" -n 128 --color -ngl 35 -p "a"
           done
-
-      - name: Upload to HF
-        shell: bash
-        run: |
-          ls -la ./${{ env.MODEL_NAME }}
-          HF_HUB_ENABLE_HF_TRANSFER=1 huggingface-cli upload ${{ env.repo_id }} ${{ env.MODEL_NAME }} . --include *.gguf
           
       - name: Upload README to HF (TODO)
         shell: bash
@@ -102,56 +94,11 @@ jobs:
           # Copy README.md
           cp ./models/${{ env.MODEL_ID }}/README.md ./${{ env.MODEL_NAME }}/
 
-          # Modify README.md
-          python - <<EOF
-          import os
-      
-          def parse_metadata(contents):
-              metadata = {}
-              lines = contents.split('\n')
-              in_metadata = False
-              for line in lines:
-                  if line.strip() == '---':
-                      if in_metadata:
-                          break
-                      else:
-                          in_metadata = True
-                          continue
-                  if in_metadata and ':' in line:
-                      key, value = line.split(':', 1)
-                      metadata[key.strip()] = value.strip()
-              return metadata
-      
-          model_id = os.getenv('MODEL_ID')
-          model_creator, model_name = model_id.split('/')
-      
-          # Read README.md
-          with open(f'./${{ env.MODEL_NAME }}/README.md', 'r') as file:
-              contents = file.read()
-      
-          # Parse existing metadata
-          metadata = parse_metadata(contents)
-      
-          # Update metadata
-          metadata['base_model'] = metadata.get('base_model', model_id)
-          metadata['model_creator'] = metadata.get('model_creator', model_creator)
-          metadata['model_name'] = metadata.get('model_name', model_name)
-          metadata['quantized_by'] = metadata.get('quantized_by', 'Jan')
-          metadata['language'] = metadata.get('language', '- en')
-          metadata['pipeline_tag'] = metadata.get('pipeline_tag', 'conversational')
-
-          # Reconstruct README
-          updated_readme = '---\n' + '\n'.join(f'{k}: {v}' for k, v in metadata.items()) + '\n---\n' + contents.split('---\n', 2)[-1]
-      
-          # Write updated README.md
-          with open(f'./${{ env.MODEL_NAME }}/README.md', 'w') as file:
-              file.write(updated_readme)
-          EOF
-
-          # Upload modified README.md
+      - name: Upload to HF
+        shell: bash
+        run: |
           ls -la ./${{ env.MODEL_NAME }}
-          huggingface-cli upload ${{ env.repo_id }} ${{ env.MODEL_NAME }} . --include *.md
-
+          HF_HUB_ENABLE_HF_TRANSFER=1 huggingface-cli upload ${{ env.repo_id }} ${{ env.MODEL_NAME }} . --include *.gguf
 
       - name: Cleanup
         if: always()
