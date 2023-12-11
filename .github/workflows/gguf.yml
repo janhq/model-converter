@@ -94,6 +94,8 @@ jobs:
           # Copy README.md
           cp ./models/${{ env.MODEL_ID }}/README.md ./${{ env.MODEL_NAME }}/
 
+          python modelCardGen.py
+
       - name: Upload to HF
         shell: bash
         run: |
