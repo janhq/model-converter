@@ -46,7 +46,7 @@ Jan believes in the need for an open-source AI ecosystem and is building the inf
 Jan's long-term vision is to build a cognitive framework for future robots, who are practical, useful assistants for humans and businesses in everyday life.
 
 # Jan Model Converter
-This is a repository for the [open-source converter](https://github.com/janhq/model-converter. We would be grateful if the community could contribute and strengthen this repository. We are aiming to expand the repo that can convert into various types of format
+This is a repository for the [open-source converter](https://github.com/janhq/model-converter). We would be grateful if the community could contribute and strengthen this repository. We are aiming to expand the repo that can convert into various types of format
 """
     return static_text
 

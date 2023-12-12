@@ -91,14 +91,14 @@ jobs:
       - name: Generate Model metadata
         shell: bash
         run: |
-          cp ./models/${{ env.MODEL_ID }}/README.md ./${{ env.MODEL_NAME }}/
+          cp ./models/README.md ./${{ env.MODEL_NAME }}/
           python modelCardGen.py --modelId=${{ env.MODEL_ID }}
 
       - name: Upload to HF
         shell: bash
         run: |
           ls -la ./${{ env.MODEL_NAME }}
-          HF_HUB_ENABLE_HF_TRANSFER=1 huggingface-cli upload ${{ env.repo_id }} ${{ env.MODEL_NAME }} . --include *.gguf --include *.md
+          HF_HUB_ENABLE_HF_TRANSFER=1 huggingface-cli upload ${{ env.repo_id }} ${{ env.MODEL_NAME }} . --include *.gguf --include *.md --include *.bin
 
       - name: Cleanup
         if: always()
