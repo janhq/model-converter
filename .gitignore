@@ -1,3 +1,4 @@
 .env/
 models/*
 main.log
+.vscode/
