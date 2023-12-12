@@ -85,22 +85,20 @@ jobs:
               qtype="${{ env.MODEL_NAME }}.$method.gguf"
               ./llama.cpp/quantize "${{ env.MODEL_NAME }}/${{ env.fp16 }}" "${{ env.MODEL_NAME }}/$qtype" "$method"
 
-              ./llama.cpp/main -m "${{ env.MODEL_NAME }}/$qtype" -n 128 --color -ngl 35 -p "a"
+              ./llama.cpp/main -m "${{ env.MODEL_NAME }}/$qtype" -n 128 --color -ngl 10 -p "a"
           done
           
-      - name: Upload README to HF (TODO)
+      - name: Generate Model metadata
         shell: bash
         run: |
-          # Copy README.md
           cp ./models/${{ env.MODEL_ID }}/README.md ./${{ env.MODEL_NAME }}/
-
-          python modelCardGen.py
+          python modelCardGen.py --modelId=${{ env.MODEL_ID }}
 
       - name: Upload to HF
         shell: bash
         run: |
           ls -la ./${{ env.MODEL_NAME }}
-          HF_HUB_ENABLE_HF_TRANSFER=1 huggingface-cli upload ${{ env.repo_id }} ${{ env.MODEL_NAME }} . --include *.gguf
+          HF_HUB_ENABLE_HF_TRANSFER=1 huggingface-cli upload ${{ env.repo_id }} ${{ env.MODEL_NAME }} . --include *.gguf --include *.md
 
       - name: Cleanup
         if: always()
