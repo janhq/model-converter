@@ -98,8 +98,7 @@ jobs:
         shell: bash
         run: |
           ls -la ./${{ env.MODEL_NAME }}
-          HF_HUB_ENABLE_HF_TRANSFER=1 huggingface-cli upload ${{ env.repo_id }} ${{ env.MODEL_NAME }} . --include *.gguf --include *.md --include *.bin
-
+          HF_HUB_ENABLE_HF_TRANSFER=1 huggingface-cli upload ${{ env.repo_id }} ${{ env.MODEL_NAME }} .
       - name: Cleanup
         if: always()
         shell: bash
