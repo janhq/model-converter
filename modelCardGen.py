@@ -6,8 +6,7 @@ def modifyMetadata(modelId, modelAuthor, modelName):
     """
     Update the metadata of the model.
     """
-    modelName_lowercase = modelName.lower()
-    with open(f'./{modelName_lowercase}/README.md', 'r') as file:
+    with open(f'./{modelName}/README.md', 'r') as file:
         content = file.read()
 
     yaml_part = content.split('---')[1]
@@ -63,8 +62,8 @@ def update_readme(modelId):
     additional_md = modifyAdditionalMetadata(modelId, modelAuthor, modelName)
 
     updated_content = '---\n' + updated_yaml + '---\n' + additional_md
-
-    with open(f'./{modelName}/README.md', 'w') as file:
+    modelName_lowercase = modelName.lower()
+    with open(f'./{modelName_lowercase}/README.md', 'w') as file:
         file.write(updated_content)
     
     print('README.md updated successfully.')
