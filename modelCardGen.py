@@ -6,7 +6,7 @@ def modifyMetadata(modelId, modelAuthor, modelName):
     """
     Update the metadata of the model.
     """
-    with open(f'./{modelName}/README.md', 'r') as file:
+    with open(f'./models/README.md', 'r') as file:
         content = file.read()
 
     yaml_part = content.split('---')[1]
